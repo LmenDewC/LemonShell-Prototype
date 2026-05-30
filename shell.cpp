@@ -19,6 +19,10 @@ using namespace std;
 //2.arg[0]@::close; doesnt break loop
 //3.arg[0]@::run; file handling
 
+//BUG CAUSE:
+//for issue_2 arg[0]@::close; caused by arg[0]@::refresh;
+
+
 //CURRENT UPDATES& FIXES:
 //+arg[0]@::refresh; easy way to edit and test code
 
