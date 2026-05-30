@@ -6,24 +6,45 @@
 #include <fstream>
 #include <filesystem>
 
+namespace fs=std::filesystem;
 using namespace std;
 
+//FUTURE UPDATES:
+//lxde format reference
+//TERM environment reading
+//arg[0]@::note; transition to filesystem_lib
+
+//ISSUES:
+//1.Proper error handling
+//2.arg[0]@::close; doesnt break loop
+//3.arg[0]@::run; file handling
+
+//CURRENT UPDATES& FIXES:
+//+arg[0]@::refresh; easy way to edit and test code
 
 
 vector<string> run(vector<string>arg);
 vector<string> write(vector<string>arg);
 vector<string> note(vector<string>arg);
+vector<string> refresh(vector<string>arg);
+
 
 int main(){
-    cout<<"[-Lemon_cmd_]\n";
-    while(true){
+    system("clear");
+
+    cout<<"[-Lemon_cmd-]\n";
+
+    bool stop=false;
+
+    while(!stop){
         string input;
         string inputToken;
         vector<string> inputSyntaxContainer;
         map<string, function<vector<string>(vector<string>)>> cmdList={
             {"run",run},
             {"write",write},
-            {"note",note}
+            {"note",note},
+            {"refresh",refresh}
         };
 
         cout<<"[?]:";
@@ -53,12 +74,12 @@ int main(){
                     cmdList[inputSyntaxContainer[0]](inputSyntaxContainer);
                 }
                 else if(inputSyntaxContainer[0]=="close"){ 
-                    cout<<"[!]program_terminated";
+                    cout<<"[!]program_terminated"<<endl;
+                    stop=true;
                     break;
                 }
                 else if(inputSyntaxContainer[0]=="clear"){
-                    system("cls");
-                    //either hardcode clear, or find easier way
+                    system("clear");
                 }
                 else if(inputSyntaxContainer[0]=="help"){
                     vector<string>argKeys;
@@ -78,28 +99,47 @@ int main(){
                 }
         }
     }
+    return 0;
 }
 
-vector<string> run(vector<string>arg){
-        //push help(syntaxKeys);
-        if(arg.empty()){
-            return {"run","filePath","fileName"};
-        }
-        //scratch or keep, still in brainstorming phase
-        //format: cmd_filePath_fileName;
-        string filePath=arg[1];
-        string fileName=arg[2];
+vector<string> run(vector<string> arg){
 
-        for(const auto &file : filesystem::directory_iterator(filePath)){
-            if(file.path().stem() == fileName){
-                system(file.path().string().c_str());
-            }
-            else{
-                cout<<"[!]run:error_404('"<<fileName<<"')"<<endl;
-            }
-        }
+    if(arg.size() < 3){
+        return {"run","filePath","fileName"};
+    }
 
-        return {};
+    string filePath = arg[1];
+    string fileName = arg[2];
+
+    if(fs::exists(filePath)){
+
+        string cmd =
+            "g++ -std=c++17 \"" +
+            filePath +
+            "\" -o \"" +
+            fileName +
+            "\"";
+
+        cout << cmd << endl;
+
+        int result = system(cmd.c_str());
+
+        if(result == 0){
+            system(("./" + fileName).c_str());
+        }
+    }
+    else{
+        cout << "[!]No_such_directory::('" << filePath << "')" << endl;
+    }
+
+    return {};
+}
+
+vector<string> refresh(vector<string>arg){
+    //push help(syntaxKeys)
+    system("g++ -std=c++17 \"/home/Kai/LemonShell-Prototype/shell.cpp\" -o lemon");
+    system("./lemon");
+    return {};
 }
 
 vector<string> write(vector<string>arg){
@@ -143,7 +183,7 @@ vector<string> note(vector<string>arg){
         inputOutput.clear();
     }
     else{
-        cout<<"[!]syntax_error(arg[1]@;larp!=write||read)"<<endl;
+        cout<<"[!]syntax_error(arg[1]@;"<<arg[1]<<"=write||read)"<<endl;
     }
     return {};
 }
