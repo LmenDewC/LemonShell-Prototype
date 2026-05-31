@@ -58,10 +58,11 @@ int main(){
             {"run",run},
             {"write",write},
             {"note",note},
-            {"refresh",refresh}
+            {"refresh",refresh},
+            
         };
 
-        cout<<"\n[?]:";
+        cout<<"[?]:";
         getline(cin,input);
 
         if(input.empty()||input.back()!=';'){
@@ -133,14 +134,14 @@ vector<string> run(vector<string> arg){
             fileName +
             "\"";
 
-        cout << cmd << endl;
-
         int result = system(cmd.c_str());
         system(("./" + fileName).c_str());
         
     }
-    else{
+    else if(!fs::exists(filePath)){
         cout << "[!]No_such_directory::('" << filePath << "')" << endl;
+    }else{
+        system(("./" + filePath).c_str());
     }
 
     return {};
