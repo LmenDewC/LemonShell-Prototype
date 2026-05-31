@@ -5,7 +5,8 @@
 //implement current file directory for shell
 //add colored output and formatting
 //arg[0]@::note; implement newline on input;
-//
+//Add dir as variable for easy access
+//implement arg[0]::rsetdir; to reset directory to original TERM directory
 
 
 //ISSUES:
