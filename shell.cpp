@@ -14,23 +14,26 @@ using namespace std;
 //lxde format reference
 //TERM environment reading
 //arg[0]@::note; folder handling and implementation
-//implement current file directory for shell
 //add colored output and formatting
 //arg[0]@::note; implement endl on input;
 
-
 //ISSUES:
 //1.Proper error handling
-//2.run should pull data then run it on the same instance of the program, not compile and run in a new instance, also should pull data from current file directory, not just absolute path
 
 //CURRENT UPDATES& FIXES:
-//arg[0]@::refresh; updated cmd, refreshes program to match changes in code, also fixes issue_2 
-//arg[0]@::run; updated cmd, now compiles and runs file in one command, also fixes issue_2;
+//arg[0]@::dlt; updated cmd, now deletes directories with content, not just empty directories;
+//arg[0]@::fnd; updated cmd, now searches for files in current directory and subdirectories, not just current directory;
+//arg[0]@::setdir; updated cmd, now changes current directory, not just checks if directory exists;
+//arg[0]@::create; updated cmd, now creates directories, not just checks if directory exists;
 
 vector<string> run(vector<string>arg);
 vector<string> write(vector<string>arg);
 vector<string> note(vector<string>arg);
 vector<string> refresh(vector<string>arg);
+vector<string> setdir(vector<string>arg);
+vector<string> create(vector<string>arg);
+vector<string> dlt(vector<string>arg);
+vector<string> fnd(vector<string>arg);
 
 
 int main(){
@@ -59,6 +62,10 @@ int main(){
             {"write",write},
             {"note",note},
             {"refresh",refresh},
+            {"setdir",setdir},
+            {"create",create},
+            {"dlt",dlt},
+            {"fnd",fnd}
             
         };
 
@@ -106,6 +113,9 @@ int main(){
                         }
                         cout<<endl;
                     }
+                }
+                else if(inputSyntaxContainer[0]=="dir"){
+                    cout<<"[o]Directory::"<<fs::current_path()<<endl;
                 }
                 else{
                     for(int i=0;i<inputSyntaxContainer.size();i++){
@@ -198,5 +208,74 @@ vector<string> refresh(vector<string>arg){
     system("g++ -std=c++17 \"/home/Kai/LemonShell-Prototype/shell.cpp\" -o lemon");
     system("./lemon");
     exit(0);
+    return {};
+}
+
+vector<string> setdir(vector<string>arg){
+    if(arg.size() < 2){
+        return {"setdir","directoryPath"};
+    }
+    string dirPath = arg[1];
+    if(fs::exists(dirPath)){
+        fs::current_path(dirPath);
+    }else{
+        cout<<"[!]No_such_directory::('" << dirPath << "')" << endl;
+    }
+    return {};
+}
+
+vector<string> create(vector<string>arg){
+    if(arg.size() < 2){
+        return {"create","directoryPath"};
+    }
+    
+    string dirPath = arg[1];
+
+    if(fs::exists(dirPath)){
+        cout<<"[!]directory_already_exists::('" << dirPath << "')" << endl;
+        return {};
+    }else{
+        fs::create_directory(dirPath);
+    }
+
+    return {};
+}
+
+vector<string> dlt(vector<string>arg){
+    if(arg.size() < 2){
+        return {"dlt","directoryPath"};
+    }
+    
+    string dirPath = arg[1];
+
+    if(fs::exists(dirPath)){
+        fs::remove_all(dirPath);
+    }else{
+        cout<<"[!]No_such_directory::('" << dirPath << "')" << endl;
+        return {};
+    }
+
+    return {};
+}
+
+vector<string> fnd(vector<string>arg){
+    if(arg.size() < 2){
+        return {"fnd","fileName"};
+    }
+    
+    string fileName = arg[1];
+    bool found = false;
+
+    for(const auto& entry : fs::recursive_directory_iterator(fs::current_path())){
+        if(entry.path().filename() == fileName){
+            cout<<"[o]File_found@::'" << entry.path() << "'" << endl;
+            found = true;
+        }
+    }
+
+    if(!found){
+        cout<<"[!]No_such_file::('" << fileName << "')" << endl;
+    }
+
     return {};
 }
