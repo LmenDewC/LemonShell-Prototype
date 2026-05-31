@@ -62,7 +62,7 @@ int main(){
             {"refresh",refresh}
         };
 
-        cout<<"[?]:";
+        cout<<"\n[?]:";
         getline(cin,input);
 
         if(input.empty()||input.back()!=';'){
@@ -137,23 +137,13 @@ vector<string> run(vector<string> arg){
         cout << cmd << endl;
 
         int result = system(cmd.c_str());
-
-        if(result == 0){
-            system(("./" + fileName).c_str());
-        }
+        system(("./" + fileName).c_str());
+        
     }
     else{
         cout << "[!]No_such_directory::('" << filePath << "')" << endl;
     }
 
-    return {};
-}
-
-vector<string> refresh(vector<string>arg){
-    //push help(syntaxKeys)
-    system("g++ -std=c++17 \"/home/Kai/LemonShell-Prototype/shell.cpp\" -o lemon");
-    system("./lemon");
-    exit(0);
     return {};
 }
 
@@ -200,5 +190,13 @@ vector<string> note(vector<string>arg){
     else{
         cout<<"[!]syntax_error(arg[1]@;"<<arg[1]<<"=write||read)"<<endl;
     }
+    return {};
+}
+
+vector<string> refresh(vector<string>arg){
+    //push help(syntaxKeys)
+    system("g++ -std=c++17 \"/home/Kai/LemonShell-Prototype/shell.cpp\" -o lemon");
+    system("./lemon");
+    exit(0);
     return {};
 }
