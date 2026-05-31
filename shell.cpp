@@ -21,12 +21,11 @@ using namespace std;
 
 //ISSUES:
 //1.Proper error handling
-//2.arg[0]@::run; file handling
 
 
 //CURRENT UPDATES& FIXES:
 //arg[0]@::refresh; updated cmd, refreshes program to match changes in code, also fixes issue_2 
-
+//arg[0]@::run; updated cmd, now compiles and runs file in one command, also fixes issue_2;
 
 vector<string> run(vector<string>arg);
 vector<string> write(vector<string>arg);
