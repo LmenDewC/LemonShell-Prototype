@@ -5,6 +5,7 @@
 #include <functional>
 #include <fstream>
 #include <filesystem>
+#include <cstdlib>
 
 namespace fs=std::filesystem;
 using namespace std;
@@ -12,19 +13,19 @@ using namespace std;
 //FUTURE UPDATES:
 //lxde format reference
 //TERM environment reading
-//arg[0]@::note; transition to filesystem_lib
+//arg[0]@::note; folder handling and implementation
+//implement current file directory for shell
+//add colored output and formatting
+//arg[0]@::note; implement endl on input;
+
 
 //ISSUES:
 //1.Proper error handling
-//2.arg[0]@::close; doesnt break loop
-//3.arg[0]@::run; file handling
-
-//BUG CAUSE:
-//for issue_2 arg[0]@::close; caused by arg[0]@::refresh;
+//2.arg[0]@::run; file handling
 
 
 //CURRENT UPDATES& FIXES:
-//+arg[0]@::refresh; easy way to edit and test code
+//arg[0]@::refresh; updated cmd, refreshes program to match changes in code, also fixes issue_2 
 
 
 vector<string> run(vector<string>arg);
@@ -36,10 +37,20 @@ vector<string> refresh(vector<string>arg);
 int main(){
     system("clear");
 
-    cout<<"[-Lemon_cmd-]\n";
+    string clear;
 
+    const char* termEnv = getenv("TERM");
+    if(termEnv != nullptr){
+        cout<<"[!]Terminal::"<<termEnv << endl;
+        if(string(termEnv) == "xterm-256color"){
+            clear = "clear";
+        }
+        else{
+            clear = "cls";
+        }
+    }
+    cout<<"\033[38;2;255;244;79m[-LemonShell-]\033[1m"<<endl;
     bool stop=false;
-
     while(!stop){
         string input;
         string inputToken;
@@ -103,7 +114,6 @@ int main(){
                 }
         }
     }
-    return 0;
 }
 
 vector<string> run(vector<string> arg){
@@ -143,6 +153,7 @@ vector<string> refresh(vector<string>arg){
     //push help(syntaxKeys)
     system("g++ -std=c++17 \"/home/Kai/LemonShell-Prototype/shell.cpp\" -o lemon");
     system("./lemon");
+    exit(0);
     return {};
 }
 
