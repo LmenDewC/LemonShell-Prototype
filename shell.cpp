@@ -13,18 +13,16 @@ using namespace std;
 //FUTURE UPDATES:
 //lxde format reference
 //TERM environment reading
-//arg[0]@::note; folder handling and implementation
 //add colored output and formatting
-//arg[0]@::note; implement endl on input;
 
 //ISSUES:
 //1.Proper error handling
 
 //CURRENT UPDATES& FIXES:
-//arg[0]@::dlt; updated cmd, now deletes directories with content, not just empty directories;
-//arg[0]@::fnd; updated cmd, now searches for files in current directory and subdirectories, not just current directory;
-//arg[0]@::setdir; updated cmd, now changes current directory, not just checks if directory exists;
-//arg[0]@::create; updated cmd, now creates directories, not just checks if directory exists;
+//arg[0]@::note; fixed read function's output formatting
+//arg[0]@::note; added buffer for write function to allow multiple lines of input
+//arg[0]@::cpy; copy file and directory with error handling
+//arg[0]@::ct; cut file and directory with error handling
 
 vector<string> run(vector<string>arg);
 vector<string> write(vector<string>arg);
@@ -34,7 +32,8 @@ vector<string> setdir(vector<string>arg);
 vector<string> create(vector<string>arg);
 vector<string> dlt(vector<string>arg);
 vector<string> fnd(vector<string>arg);
-
+vector<string> cpy(vector<string>arg);
+vector<string> ct(vector<string>arg);
 
 int main(){
     system("clear");
@@ -65,7 +64,9 @@ int main(){
             {"setdir",setdir},
             {"create",create},
             {"dlt",dlt},
-            {"fnd",fnd}
+            {"fnd",fnd},
+            {"cpy",cpy},
+            {"ct",ct}
             
         };
 
@@ -178,22 +179,36 @@ vector<string> note(vector<string>arg){
 
     string fileName;
     string inputOutput;
+    vector<string> noteBuffer;
     if(arg[1]=="write"){
-        cout<<"[i]"<<arg[2]<<"<<";
+        while(true){
+        cout<<"[i]"<<"<<";
         getline(cin,inputOutput);
+        if(inputOutput=="_end"){
+            break;
+        }
+        noteBuffer.push_back(inputOutput);
+        }
 
         ofstream file;
         file.open(arg[2]);
-        file<<inputOutput;
+        for(const auto& line : noteBuffer){
+            file << line << endl;
+        }
         file.close();
         inputOutput.clear();
     }
     else if(arg[1]=="read"){
+        int lineCount = 0;
         ifstream file;
         file.open(arg[2]);
+        cout<<"\033[37m["<<arg[2]<<"]\033[0m"<<endl;
+        cout<<"\033[32m--------------------"<<endl;
         while(getline(file,inputOutput)){
-            cout<<"[o]"<<arg[2]<<">>"<<inputOutput<<endl;
+            lineCount++;
+            cout<<"["<<lineCount<<"]"<<">>"<<inputOutput<<endl;
         }
+        cout<<"--------------------\033[38;2;255;244;79m"<<endl;
         file.close();
         inputOutput.clear();
     }
@@ -205,7 +220,7 @@ vector<string> note(vector<string>arg){
 
 vector<string> refresh(vector<string>arg){
     //push help(syntaxKeys)
-    system("g++ -std=c++17 \"/home/Kai/LemonShell-Prototype/shell.cpp\" -o lemon");
+    system("g++ -std=c++17 \"/home/kai/LemonShell-Prototype/shell.cpp\" -o lemon");
     system("./lemon");
     exit(0);
     return {};
@@ -277,5 +292,46 @@ vector<string> fnd(vector<string>arg){
         cout<<"[!]No_such_file::('" << fileName << "')" << endl;
     }
 
+    return {};
+}
+
+vector<string> cpy(vector<string>arg){
+    if(arg.size() < 3){
+        return {"copy","sourcePath","destinationPath"};
+    }
+    
+    string sourcePath = arg[1];
+    string destinationPath = arg[2];
+
+    if(fs::exists(sourcePath)){
+        try{
+            fs::copy(sourcePath, destinationPath, fs::copy_options::recursive);
+        }catch(const fs::filesystem_error& e){
+            cout<<"[!]Error_copying_file::(" << e.what() << ")" << endl;
+        }
+    }else{
+        cout<<"[!]No_such_file_or_directory::('" << sourcePath << "')" << endl;
+        return {};
+    }
+
+    return {};
+}
+
+vector<string> ct(vector<string>arg){
+    if(arg.size() < 3){
+        return {"ct","fileName.fileType","destinationPath"};
+    }
+    
+    string fileName = arg[1];
+    string destinationPath = arg[2];
+
+    if(fs::exists(destinationPath)){
+        try{
+            fs::copy_file(fileName, destinationPath + "/" + fileName);
+            fs::remove(fileName);
+        }catch(const fs::filesystem_error& e){
+            cout<<"[!]Error_copying_file::(" << e.what() << ")" << endl;
+        }
+    }
     return {};
 }
