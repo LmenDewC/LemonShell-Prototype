@@ -10,33 +10,44 @@
 namespace fs=std::filesystem;
 using namespace std;
 
+
 //FUTURE UPDATES:
-//lxde format reference
 //TERM environment reading
 //add colored output and formatting
+//add git as cmd
 
 //ISSUES:
 //1.Proper error handling
 
 //CURRENT UPDATES& FIXES:
-//arg[0]@::note; fixed read function's output formatting
-//arg[0]@::note; added buffer for write function to allow multiple lines of input
-//arg[0]@::cpy; copy file and directory with error handling
-//arg[0]@::ct; cut file and directory with error handling
+//arg[0]::ct; fixed bugs on directory handling;
+//arg[0]::cpy; fixed bugs on directory handling;
+//arg[0]::dlt: added confirmation before execution;
+
 
 vector<string> run(vector<string>arg);
 vector<string> write(vector<string>arg);
 vector<string> note(vector<string>arg);
 vector<string> refresh(vector<string>arg);
 vector<string> setdir(vector<string>arg);
-vector<string> create(vector<string>arg);
+vector<string> cdir(vector<string>arg);
 vector<string> dlt(vector<string>arg);
 vector<string> fnd(vector<string>arg);
 vector<string> cpy(vector<string>arg);
 vector<string> ct(vector<string>arg);
+vector<string> rname(vector<string>arg);
+vector<string> lc(vector<string>arg);
+vector<string> git(vector<string>arg);
+
+
+string currentDirectory=fs::current_path();
+string mainDir="/data/data/com.termux/files/home";
 
 int main(){
     system("clear");
+    
+    cout<<"[d]"<<currentDirectory<<endl;
+
 
     string clear;
 
@@ -62,12 +73,14 @@ int main(){
             {"note",note},
             {"refresh",refresh},
             {"setdir",setdir},
-            {"create",create},
+            {"cdir",cdir},
             {"dlt",dlt},
             {"fnd",fnd},
             {"cpy",cpy},
-            {"ct",ct}
-            
+            {"ct",ct},
+	    {"rname",rname},
+            {"lc",lc},
+	    {"git",git}
         };
 
         cout<<"[?]:";
@@ -220,7 +233,7 @@ vector<string> note(vector<string>arg){
 
 vector<string> refresh(vector<string>arg){
     //push help(syntaxKeys)
-    system("g++ -std=c++17 \"/home/kai/LemonShell-Prototype/shell.cpp\" -o lemon");
+    system("g++ -std=c++17 \"/data/data/com.termux/files/home/kai/editables/shell.cpp\" -o lemon");
     system("./lemon");
     exit(0);
     return {};
@@ -231,28 +244,31 @@ vector<string> setdir(vector<string>arg){
         return {"setdir","directoryPath"};
     }
     string dirPath = arg[1];
+
     if(fs::exists(dirPath)){
         fs::current_path(dirPath);
-    }else{
-        cout<<"[!]No_such_directory::('" << dirPath << "')" << endl;
+    }else
+    if(dirPath=="main"){
+        fs::current_path(mainDir);
+    }
+    else{
+        	cout<<"[!]No_such_directory::('" << dirPath << "')" << endl;
     }
     return {};
 }
 
-vector<string> create(vector<string>arg){
+vector<string> cdir(vector<string>arg){
     if(arg.size() < 2){
-        return {"create","directoryPath"};
+        return {"cdir","directoryPath"};
     }
-    
-    string dirPath = arg[1];
+    string dirPath=arg[1];
 
     if(fs::exists(dirPath)){
-        cout<<"[!]directory_already_exists::('" << dirPath << "')" << endl;
-        return {};
+	cout<<"[!]directory_already_exists::('"<<dirPath<<"')"<<endl;
     }else{
-        fs::create_directory(dirPath);
+	fs::create_directory(dirPath);
+	cout<<"[!]dir_created"<<endl;
     }
-
     return {};
 }
 
@@ -262,9 +278,17 @@ vector<string> dlt(vector<string>arg){
     }
     
     string dirPath = arg[1];
-
+    string yn;
     if(fs::exists(dirPath)){
-        fs::remove_all(dirPath);
+	cout<<"[!]delete_file?_[y/n]:";
+	cin>>yn;
+	if(yn=="y"||yn=="Y"){
+        	fs::remove_all(dirPath);
+		cout<<"[!]deleted"<<endl;
+	}
+	if(yn=="n"||yn=="N"){
+		cout<<"[!]aborted"<<endl;
+	}
     }else{
         cout<<"[!]No_such_directory::('" << dirPath << "')" << endl;
         return {};
@@ -319,19 +343,90 @@ vector<string> cpy(vector<string>arg){
 
 vector<string> ct(vector<string>arg){
     if(arg.size() < 3){
-        return {"ct","fileName.fileType","destinationPath"};
+        return {"ct","sourceFile","destinationPath"};
     }
     
-    string fileName = arg[1];
+    string sourceFile = arg[1];
     string destinationPath = arg[2];
 
-    if(fs::exists(destinationPath)){
+    if(fs::exists(sourceFile)){
         try{
-            fs::copy_file(fileName, destinationPath + "/" + fileName);
-            fs::remove(fileName);
+               fs::copy(sourceFile,destinationPath+"/"+sourceFile,fs::copy_options::recursive|fs::copy_options::overwrite_existing);
+	       fs::remove_all(sourceFile);
+	       cout<<"[!]file_'"<<sourceFile<<"'_moved"<<endl;
         }catch(const fs::filesystem_error& e){
             cout<<"[!]Error_copying_file::(" << e.what() << ")" << endl;
         }
     }
+    return {};
+}
+
+vector<string> rname(vector<string>arg){
+	if(arg.size()<3){
+		return{"rname","fileName.dirName","newName"};
+	}
+	string originalName=arg[1];
+	string newName=arg[2];
+	
+	if(!fs::exists(originalName)){
+		cout<<"[!]error_404("<<originalName<<")"<<endl;		
+	}
+	else{
+	fs::rename(originalName,newName);
+	}
+	return {};
+}
+
+vector<string> lc(vector<string>arg){
+	if(arg.size()<2){
+		return{"lc","dirPath"};
+	}
+	string dirPath=arg[2];
+
+	if(arg[1]=="files"){
+		for(const auto& content:fs::directory_iterator(dirPath)){
+			if(content.is_regular_file()){
+				cout<<"[.]"<<content<<endl;
+			}
+		}
+	}
+	else if(arg[1]=="dir"){
+		for(const auto& content:fs::directory_iterator(dirPath)){
+			if(content.is_directory()){
+				cout<<"[/]"<<content<<endl;
+			}
+		}
+	}
+	else if(arg[1]=="all"){
+		for(const auto& content:fs::directory_iterator(dirPath)){
+			if(content.is_directory()){
+				cout<<"[/]"<<content<<endl;
+			}
+			else if(content.is_regular_file()){
+				cout<<"[.]"<<content<<endl;
+			}
+			else{
+				cout<<"[!]error(unreadable_file/path)"<<endl;
+			}
+		}
+	}
+	else{
+		cout<<"[!]error_404(arg[1]@::"<<arg[1]<<"...files/dir)"<<endl;
+	}
+	return {};
+}
+
+vector<string>git(vector<string>arg){
+    if(arg.size()<2){
+         return{"git","args"};
+    }
+
+    string header=arg[0];
+    string gcmd;
+    for(int i=1;i<arg.size();i++){
+	 gcmd+=" "+arg[i];
+    }
+    system((header+gcmd).c_str());
+
     return {};
 }
