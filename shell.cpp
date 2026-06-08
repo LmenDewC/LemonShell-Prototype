@@ -14,15 +14,13 @@ using namespace std;
 //FUTURE UPDATES:
 //TERM environment reading
 //add colored output and formatting
-//add git as cmd
 
 //ISSUES:
 //1.Proper error handling
 
 //CURRENT UPDATES& FIXES:
-//arg[0]::ct; fixed bugs on directory handling;
-//arg[0]::cpy; fixed bugs on directory handling;
-//arg[0]::dlt: added confirmation before execution;
+//+arg[0]::git; added git to shell;
+//+arg[0]::sys;added std system command;
 
 
 vector<string> run(vector<string>arg);
@@ -38,7 +36,7 @@ vector<string> ct(vector<string>arg);
 vector<string> rname(vector<string>arg);
 vector<string> lc(vector<string>arg);
 vector<string> git(vector<string>arg);
-
+vector<string> sys(vector<string>arg);
 
 string currentDirectory=fs::current_path();
 string mainDir="/data/data/com.termux/files/home";
@@ -46,14 +44,14 @@ string mainDir="/data/data/com.termux/files/home";
 int main(){
     system("clear");
     
-    cout<<"[d]"<<currentDirectory<<endl;
+    cout<<"[cd]"<<currentDirectory<<endl;
 
 
     string clear;
 
     const char* termEnv = getenv("TERM");
     if(termEnv != nullptr){
-        cout<<"[!]Terminal::"<<termEnv << endl;
+        cout<<"[ENV]Terminal::"<<termEnv << endl;
         if(string(termEnv) == "xterm-256color"){
             clear = "clear";
         }
@@ -80,7 +78,8 @@ int main(){
             {"ct",ct},
 	    {"rname",rname},
             {"lc",lc},
-	    {"git",git}
+	    {"git",git},
+	    {"sys",sys}
         };
 
         cout<<"[?]:";
@@ -148,24 +147,21 @@ vector<string> run(vector<string> arg){
 
     string filePath = arg[1];
     string fileName = arg[2];
-
-    if(fs::exists(filePath)){
+    if(filePath=="."){
+	   system(("./"+fileName).c_str());
+    }else if(fs::exists(filePath)){
 
         string cmd =
             "g++ -std=c++17 \"" +
             filePath +
-            "\" -o \"" +
-            fileName +
-            "\"";
+            "\" -o \""+fileName + "\"";
 
         int result = system(cmd.c_str());
         system(("./" + fileName).c_str());
         
     }
-    else if(!fs::exists(filePath)){
+    else{
         cout << "[!]No_such_directory::('" << filePath << "')" << endl;
-    }else{
-        system(("./" + filePath).c_str());
     }
 
     return {};
@@ -233,8 +229,9 @@ vector<string> note(vector<string>arg){
 
 vector<string> refresh(vector<string>arg){
     //push help(syntaxKeys)
-    system("g++ -std=c++17 \"/data/data/com.termux/files/home/kai/editables/shell.cpp\" -o lemon");
-    system("./lemon");
+    fs::current_path(mainDir);
+    system("g++ -std=c++17 \"./kai/gitLab/LemonShell-Prototype/shell.cpp\" -o ./kai/lemontree/lemon.sh");
+    system("./kai/lemontree/lemon.sh");
     exit(0);
     return {};
 }
@@ -423,10 +420,22 @@ vector<string>git(vector<string>arg){
 
     string header=arg[0];
     string gcmd;
+    string output;
     for(int i=1;i<arg.size();i++){
 	 gcmd+=" "+arg[i];
     }
     system((header+gcmd).c_str());
 
+    return {};
+}
+vector<string> sys(vector<string>arg){
+    if(arg.size()<3){
+	 return{"sys","cmd","arg"};
+    }
+    string sysCMD;
+    for(int i=1;i<arg.size();i++){
+	    sysCMD+=" "+arg[i];
+    }
+    system((sysCMD).c_str());
     return {};
 }
